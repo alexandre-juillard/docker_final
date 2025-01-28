@@ -1,7 +1,7 @@
 # Etape 1 : Utiliser une image Python 3.11
 # cette étape installe les dépendances 
 # image slim + petite pour image + légère
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Définir le répertoire de travail
 WORKDIR /app

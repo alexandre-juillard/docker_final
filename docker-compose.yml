@@ -1,58 +1,146 @@
-version: "3.9"
-
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres
+  # Service Redis
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: votes
+      REDIS_PASSWORD: ${REDIS_PASSWORD}  # Utilisation d'une variable d'environnement
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]  # Utilisation du mot de passe Redis
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+  # Service PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
 
-  redis:
-    image: redis:7
-    container_name: redis
-    networks:
-      - backend
-
-  vote:
-    build:
-      context: ./vote
-    container_name: vote
-    ports:
-      - "5000:5000"
-    networks:
-      - backend
-    depends_on:
-      - redis
-
+  # Service Worker (.NET)
   worker:
     build:
       context: ./worker
     container_name: worker
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - backend
-    depends_on:
-      - redis
-      - postgres
+    environment:
+      NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
+    secrets:
+      - postgres_password  # Utilisation d'un secret pour le mot de passe PostgreSQL
+    healthcheck:
+      test: ["CMD", "dotnet", "bin/Release/net7.0/Worker.dll", "--check"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
+  # Service Result (Node.js)
   result:
     build:
       context: ./result
     container_name: result
     ports:
       - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - backend
-    depends_on:
-      - postgres
+    environment:
+      NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
+    secrets:
+      - postgres_password  # Utilisation d'un secret pour le mot de passe PostgreSQL
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 256M
 
+  # Service Vote (Python)
+  vote:
+    build:
+      context: ./vote
+    container_name: vote
+    ports:
+      - "5000:5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+    environment:
+      FLASK_ENV: ${FLASK_ENV}  # Utilisation d'une variable d'environnement
+    secrets:
+      - redis_password  # Utilisation d'un secret pour le mot de passe Redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 256M
+
+# Volume pour PostgreSQL
 volumes:
   postgres-data:
 
+# Réseau pour interconnecter les services
 networks:
   backend:
+    driver: bridge
+
+# Secrets pour gérer les informations sensibles
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt  # Fichier contenant le mot de passe PostgreSQL
+  redis_password:
+    file: ./secrets/redis_password.txt  # Fichier contenant le mot de passe Redis
