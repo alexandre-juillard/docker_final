@@ -1,7 +1,7 @@
 # Etape 1 : Utiliser une image Python 3.11
 # cette étape installe les dépendances 
 # image slim + petite pour image + légère
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim AS build
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -30,9 +30,9 @@ RUN useradd -m myuser
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier l'environnement virtuel depuis l'étape builder
+# Copier l'environnement virtuel depuis l'étape build
 # minimise l'impact sur le cache
-COPY --from=builder /opt/venv /opt/venv
+COPY --from=build /opt/venv /opt/venv
 
 # Activer l'environnement virtuel
 ENV PATH="/opt/venv/bin:$PATH"

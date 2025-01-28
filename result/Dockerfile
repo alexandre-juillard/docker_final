@@ -29,11 +29,11 @@ RUN adduser -D myuser
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les dépendances installées à l'étape builder
-COPY --from=builder /app/node_modules ./node_modules
+# Copier les dépendances installées à l'étape build
+COPY --from=build /app/node_modules ./node_modules
 
 # Copier le reste de l'application
-COPY --from=builder /app .
+COPY --from=build /app .
 
 # Passer à l'utilisateur non-root
 USER myuser
