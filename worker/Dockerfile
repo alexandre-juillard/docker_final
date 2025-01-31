@@ -22,7 +22,7 @@ RUN rm -rf bin/ obj/
 # Construire le projet
 # RUN dotnet publish -c Release -o /out
 # construire un executable optimisé pour la production
-RUN dotnet publish -c Release --self-contained false --no-restore -o /app/publish
+RUN dotnet publish -c Release --self-contained false -o /app/publish
 
 # Étape 2 : Utiliser une image de runtime .NET pour l'exécution
 # image + légère car contient uniquement le runtime
@@ -41,4 +41,4 @@ COPY --from=build /app/publish .
 USER myuser
 
 # Commande pour démarrer l'application
-ENTRYPOINT ["dotnet", "bin/Release/net7.0/Worker.dll"]
+ENTRYPOINT ["dotnet", "Worker.dll"]
