@@ -17,7 +17,7 @@ namespace Worker
             try
             {
                 string password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-                var pgsql = OpenDbConnection($"Server=postgres;Username=postgres;Password={password};");
+                var pgsql = OpenDbConnection($"Host=postgres;Username=postgres;Password={password};Database=postgres;");
                 var redisConn = OpenRedisConnection("localhost");
                 var redis = redisConn.GetDatabase();
 
@@ -72,20 +72,38 @@ namespace Worker
 
             while (true)
             {
+                // try
+                // {
+                //     connection = new NpgsqlConnection(connectionString);
+                //     connection.Open();
+                //     break;
+                // }
+                // catch (SocketException)
+                // {
+                //     Console.Error.WriteLine("Waiting for db");
+                //     Thread.Sleep(1000);
+                // }
+                // catch (DbException)
+                // {
+                //     Console.Error.WriteLine("Waiting for db dbexception");
+                //     Thread.Sleep(1000);
+                // }
                 try
                 {
+                    Console.WriteLine("Attempting to connect to database...");
                     connection = new NpgsqlConnection(connectionString);
                     connection.Open();
+                    Console.WriteLine("Connected to database");
                     break;
                 }
                 catch (SocketException)
                 {
-                    Console.Error.WriteLine("Waiting for db");
+                    Console.Error.WriteLine("Waiting for DB connection...");
                     Thread.Sleep(1000);
                 }
-                catch (DbException)
+                catch (DbException ex)
                 {
-                    Console.Error.WriteLine("Waiting for db dbexception");
+                    Console.Error.WriteLine($"DB exception: {ex.Message}");
                     Thread.Sleep(1000);
                 }
             }
