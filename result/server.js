@@ -15,7 +15,7 @@ const port = 8888
 
 io.sockets.on("connection", function (socket) {
 
-  socket.emit("message", {text: "Welcome!"})
+  socket.emit("message", { text: "Welcome!" })
 
   socket.on("subscribe", function (data) {
     socket.join(data.channel)
@@ -23,11 +23,11 @@ io.sockets.on("connection", function (socket) {
 })
 
 const pool = new pg.Pool({
-  connectionString: "postgres://postgres:postgres@localhost/postgres",
+  connectionString: "postgres://postgres:postgres@postgres:5432/postgres",
 })
 
 async.retry(
-  {times: 1000, interval: 1000},
+  { times: 1000, interval: 1000 },
   function (callback) {
     pool.connect(function (err, client, done) {
       if (err) {
@@ -61,7 +61,7 @@ function getVotes(client) {
 }
 
 function collectVotesFromResult(result) {
-  const votes = {a: 0, b: 0}
+  const votes = { a: 0, b: 0 }
 
   result.rows.forEach(function (row) {
     votes[row.vote] = parseInt(row.count)

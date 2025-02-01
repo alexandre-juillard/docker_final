@@ -16,7 +16,8 @@ namespace Worker
         {
             try
             {
-                var pgsql = OpenDbConnection("Server=localhost;Username=postgres;Password=postgres;");
+                string password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+                var pgsql = OpenDbConnection($"Server=postgres;Username=postgres;Password={password};");
                 var redisConn = OpenRedisConnection("localhost");
                 var redis = redisConn.GetDatabase();
 
@@ -29,7 +30,8 @@ namespace Worker
                     Thread.Sleep(100);
 
                     // Se reconnecter à Redis si la connexion est perdue
-                    if (redisConn == null || !redisConn.IsConnected) {
+                    if (redisConn == null || !redisConn.IsConnected)
+                    {
                         Console.WriteLine("Reconnecting Redis");
                         redisConn = OpenRedisConnection("localhost");
                         redis = redisConn.GetDatabase();
@@ -44,7 +46,7 @@ namespace Worker
                         if (!pgsql.State.Equals(System.Data.ConnectionState.Open))
                         {
                             Console.WriteLine("Reconnecting DB");
-                            pgsql = OpenDbConnection("Server=localhost;Username=postgres;Password=postgres;");
+                            pgsql = OpenDbConnection($"Server=postgres;Username=postgres;Password={password};");
                         }
                         else
                         {
@@ -83,7 +85,7 @@ namespace Worker
                 }
                 catch (DbException)
                 {
-                    Console.Error.WriteLine("Waiting for db");
+                    Console.Error.WriteLine("Waiting for db dbexception");
                     Thread.Sleep(1000);
                 }
             }

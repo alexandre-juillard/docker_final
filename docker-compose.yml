@@ -14,7 +14,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
-    restart: unless-stopped
+    restart: on-failure:5
     deploy:
       resources:
         limits:
@@ -40,7 +40,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
-    restart: unless-stopped
+    restart: on-failure:5
     deploy:
       resources:
         limits:
@@ -52,21 +52,17 @@ services:
     build:
       context: ./worker
     container_name: worker
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - backend
     environment:
       NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
-    secrets:
-      - postgres_password  # Utilisation d'un secret pour le mot de passe PostgreSQL
+    user: "0:0"
     healthcheck:
       test: ["CMD", "dotnet", "bin/Release/net7.0/Worker.dll", "--check"]
       interval: 10s
       timeout: 5s
       retries: 3
-    restart: unless-stopped
+    restart: on-failure:5
     deploy:
       resources:
         limits:
@@ -84,17 +80,15 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - backend
+      - frontend
     environment:
       NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
-    secrets:
-      - postgres_password  # Utilisation d'un secret pour le mot de passe PostgreSQL
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
-    restart: unless-stopped
+    restart: on-failure:5
     deploy:
       resources:
         limits:
@@ -112,17 +106,15 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - backend
+      - frontend
     environment:
       FLASK_ENV: ${FLASK_ENV}  # Utilisation d'une variable d'environnement
-    secrets:
-      - redis_password  # Utilisation d'un secret pour le mot de passe Redis
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
-    restart: unless-stopped
+    restart: on-failure:5
     deploy:
       resources:
         limits:
@@ -137,10 +129,5 @@ volumes:
 networks:
   backend:
     driver: bridge
-
-# Secrets pour gérer les informations sensibles
-secrets:
-  postgres_password:
-    file: ./secrets/postgres_password.txt  # Fichier contenant le mot de passe PostgreSQL
-  redis_password:
-    file: ./secrets/redis_password.txt  # Fichier contenant le mot de passe Redis
+  frontend:
+    driver: bridge
