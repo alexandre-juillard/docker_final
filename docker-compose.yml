@@ -6,7 +6,9 @@ services:
     ports:
       - "6379:6379"
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}  # Utilisation d'une variable d'environnement
+      REDIS_HOST: redis
+    volumes:
+      - redis-data:/data
     networks:
       - backend
     healthcheck:
@@ -28,15 +30,16 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -55,10 +58,16 @@ services:
     networks:
       - backend
     environment:
-      NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
-    depends_on:
-      postgres:
-        condition: service_healthy
+      REDIS_HOST: redis
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres  # Utilisation d'une variable d'environnement
+      POSTGRES_PASSWORD: postgres # Utilisation d'une variable d'environnement
+      POSTGRES_DB: postgres  # Utilisation d'une variable d'environnement
+    # depends_on:
+    #   redis:
+      #   condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
     healthcheck:
       test: ["CMD", "dotnet", "bin/Release/net7.0/Worker.dll", "--check"]
       interval: 10s
@@ -78,7 +87,7 @@ services:
       context: ./result
     container_name: result
     ports:
-      - "3000:3000"
+      - "3000:8888"
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,7 +96,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -104,7 +113,7 @@ services:
       context: ./vote
     container_name: vote
     ports:
-      - "5000:5000"
+      - "5000:8080"
     depends_on:
       redis:
         condition: service_healthy
@@ -112,8 +121,9 @@ services:
       - frontend
     environment:
       FLASK_ENV: ${FLASK_ENV}  # Utilisation d'une variable d'environnement
+      REDIS_HOST: redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -127,6 +137,7 @@ services:
 # Volume pour PostgreSQL
 volumes:
   postgres-data:
+  redis-data:
 
 # Réseau pour interconnecter les services
 networks:
