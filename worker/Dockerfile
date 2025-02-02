@@ -1,6 +1,6 @@
 # Etape 1 : Utiliser une image officielle .NET Core
 # image pour compiler et publier le projet
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 # Définir le répertoire de travail
 # WORKDIR /app
@@ -26,7 +26,7 @@ RUN dotnet publish -c Release --self-contained false -o /app/publish
 
 # Étape 2 : Utiliser une image de runtime .NET pour l'exécution
 # image + légère car contient uniquement le runtime
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 # Définir le répertoire de travail
 WORKDIR /app

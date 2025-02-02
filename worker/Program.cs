@@ -16,7 +16,13 @@ namespace Worker
         {
             try
             {
-                var pgsql = OpenDbConnection("Host=postgres;Username=postgres;Password=postgres;Database=postgres;SSL Mode=Disable;");
+                var dbHost = Environment.GetEnvironmentVariable("POSTGRES_HOST");
+                var dbUser = Environment.GetEnvironmentVariable("POSTGRES_USER");
+                var dbPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+                var dbName = Environment.GetEnvironmentVariable("POSTGRES_DB");
+
+                var connectionString = $"Host={dbHost};Username={dbUser};Password={dbPassword};Database={dbName};Include Error Detail=true;";
+                var pgsql = OpenDbConnection(connectionString);
                 var redisConn = OpenRedisConnection("localhost");
                 var redis = redisConn.GetDatabase();
 
@@ -45,7 +51,7 @@ namespace Worker
                         if (!pgsql.State.Equals(System.Data.ConnectionState.Open))
                         {
                             Console.WriteLine("Reconnecting DB");
-                            pgsql = OpenDbConnection("Host=postgres;Username=postgres;Password=postgres;Database=postgres;SSL Mode=Disable;");
+                            pgsql = OpenDbConnection("Host=postgres;Username=postgres;Password=postgres;Database=postgres;");
                         }
                         else
                         {
