@@ -30,10 +30,10 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres 
+      POSTGRES_USER: ${POSTGRES_USER}  # Utilisation d'une variable d'environnement
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Utilisation d'une variable d'environnement
+      POSTGRES_DB: postgres 
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -60,8 +60,8 @@ services:
     environment:
       REDIS_HOST: redis
       POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres  # Utilisation d'une variable d'environnement
-      POSTGRES_PASSWORD: postgres # Utilisation d'une variable d'environnement
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres  # Utilisation d'une variable d'environnement
     depends_on:
       redis:
@@ -97,10 +97,10 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
       POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: ${POSTGRES_PORT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
       interval: 10s
