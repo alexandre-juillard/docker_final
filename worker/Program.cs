@@ -23,7 +23,7 @@ namespace Worker
 
                 var connectionString = $"Host={dbHost};Username={dbUser};Password={dbPassword};Database={dbName};Include Error Detail=true;";
                 var pgsql = OpenDbConnection(connectionString);
-                var redisConn = OpenRedisConnection("localhost");
+                var redisConn = OpenRedisConnection("redis");
                 var redis = redisConn.GetDatabase();
 
                 var keepAliveCommand = pgsql.CreateCommand();
@@ -38,7 +38,7 @@ namespace Worker
                     if (redisConn == null || !redisConn.IsConnected)
                     {
                         Console.WriteLine("Reconnecting Redis");
-                        redisConn = OpenRedisConnection("localhost");
+                        redisConn = OpenRedisConnection("redis");
                         redis = redisConn.GetDatabase();
                     }
                     string json = redis.ListLeftPopAsync("votes").Result;
@@ -128,7 +128,7 @@ namespace Worker
         private static ConnectionMultiplexer OpenRedisConnection(string hostname)
         {
             // Use IP address to workaround https://github.com/StackExchange/StackExchange.Redis/issues/410
-            var ipAddress = GetIp(hostname);
+            var ipAddress = GetIp();
             Console.WriteLine($"Found redis at {ipAddress}");
 
             while (true)
@@ -146,12 +146,16 @@ namespace Worker
             }
         }
 
-        private static string GetIp(string hostname)
-            => Dns.GetHostEntryAsync(hostname)
-                .Result
-                .AddressList
-                .First(a => a.AddressFamily == AddressFamily.InterNetwork)
-                .ToString();
+        // private static string GetIp(string hostname)
+        //     => Dns.GetHostEntryAsync(hostname)
+        //         .Result
+        //         .AddressList
+        //         .First(a => a.AddressFamily == AddressFamily.InterNetwork)
+        //         .ToString();
+        private static string GetIp()
+        {
+            return "redis";  // Retourner directement le nom du service
+        }
 
         private static void UpdateVote(NpgsqlConnection connection, string voterId, string vote)
         {
