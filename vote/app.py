@@ -16,7 +16,8 @@ app.logger.setLevel(logging.INFO)
 
 def get_redis():
     if not hasattr(Flask, 'redis'):
-        Flask.redis = Redis(host="localhost", db=0, socket_timeout=5)
+        redis_host = os.getenv("REDIS_HOST", "redis")
+        Flask.redis = Redis(host=redis_host, port=6379, db=0, socket_timeout=5)
     return Flask.redis
 
 @app.route("/", methods=['POST', 'GET'])

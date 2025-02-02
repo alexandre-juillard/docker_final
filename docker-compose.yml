@@ -11,6 +11,7 @@ services:
       - redis-data:/data
     networks:
       - backend
+      - frontend
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]  # Utilisation du mot de passe Redis
       interval: 5s
