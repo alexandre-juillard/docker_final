@@ -63,11 +63,11 @@ services:
       POSTGRES_USER: postgres  # Utilisation d'une variable d'environnement
       POSTGRES_PASSWORD: postgres # Utilisation d'une variable d'environnement
       POSTGRES_DB: postgres  # Utilisation d'une variable d'environnement
-    # depends_on:
-    #   redis:
-      #   condition: service_healthy
-      # postgres:
-      #   condition: service_healthy
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "dotnet", "/app/Worker.dll", "--check"]
       interval: 10s
@@ -93,8 +93,14 @@ services:
         condition: service_healthy
     networks:
       - frontend
+      - backend
     environment:
       NODE_ENV: ${NODE_ENV}  # Utilisation d'une variable d'environnement
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
       interval: 10s
