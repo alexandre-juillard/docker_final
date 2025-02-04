@@ -102,7 +102,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PORT: ${POSTGRES_PORT}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -129,7 +129,7 @@ services:
       FLASK_ENV: ${FLASK_ENV}  # Utilisation d'une variable d'environnement
       REDIS_HOST: redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
